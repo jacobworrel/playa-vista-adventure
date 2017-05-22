@@ -7,7 +7,7 @@ const db = Expo.SQLite.openDatabase('projectDB');
 
 // db.transaction(tx => {
 //   console.log("create table")
-//   tx.executeSql('DROP TABLE location'); 
+//   tx.executeSql('DROP TABLE location');
 //   tx.executeSql(data.location); //create the location table
 //   tx.executeSql('INSERT INTO location VALUES (2, -118.4222983, 33.979500, "CodeSmith", 80)');
 //   tx.executeSql('INSERT INTO location VALUES (1, -118.4182312, 33.9767221, "Whole Foods", 130)'); //insert first row
