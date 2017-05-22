@@ -112,11 +112,13 @@ export default class App extends React.Component {
   _getNewClue = () => {
     console.log('getting new clue');
     db.transaction(tx => {
+      console.log('inside db.transaction', tx)
       tx.executeSql(`select *
                      from clue inner join location on clue.location_id = location.id where completed = 0;`,
         [],
         (_, result) => {
-          console.log(result);
+          console.log("inside executeSql result --->", result);
+          console.log("inside executeSql result.rows --->", result.rows)
           if (result.rows.length) {
             let randIndex = Math.floor(Math.random() * result.rows.length);
 
