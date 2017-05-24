@@ -6,10 +6,10 @@ class ClueDescription extends Component {
     return (
       <Text style={this.props.style}>
         {this.props.clue}
-        {/*{this.props.clueDescription}*/}
       </Text>
     );
   }
 }
 
 export default ClueDescription;
+//{/*{this.props.clueDescription}*/}

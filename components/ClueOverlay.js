@@ -25,15 +25,16 @@ const styles = StyleSheet.create({
     flex: 3,
     fontWeight: 'bold',
     color: 'white',
-    fontSize: 20
-    // fontFamily: 'Helvetica',
+    fontSize: 20,
+    padding: 20
   },
   clueCompletion: {
     flex: 1,
     fontWeight: 'bold',
     color: 'white',
-    textAlign: 'right',
-    fontSize: 20
+    textAlign: 'center',
+    fontSize: 20,
+    padding: 20
   }
 })
 
