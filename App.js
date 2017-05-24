@@ -20,6 +20,7 @@ export default class App extends React.Component {
     errorMessage: null,
     distance: 0,
     cluesCompleted: 0,
+    savedClue: false
   };
 
   componentWillMount() {
@@ -53,8 +54,47 @@ export default class App extends React.Component {
   };
 
 
-
   _getSavedClue = () => {
+
+    db.transaction(tx => {
+      tx.executeSql(`SELECT * FROM user 
+                    INNER JOIN clue
+                    ON user.curr_clue=clue.location_id 
+                    INNER JOIN location
+                    ON clue.location_id=location.id;`, [],
+        (_, result) => {
+          console.log("success getting saved clue", result);
+          if (result.rows.length) {
+            let record = result.rows.item(0);
+            console.log('record', record)
+            this.setState({
+              isGameStarted: true,
+              clueId: record.id,
+              clue: record.description,
+              clueLocation: {
+                latitude: record.latitude,
+                longitude: record.longitude,
+                placename: record.place_name,
+                radius: record.radius
+              }
+            });
+          }
+        },
+        (_, err) => console.log("error getting new clue", err)
+      )
+    })
+  }
+
+  _getNewClue = () => {
+    db.transaction(tx => {
+      tx.executeSql(`SELECT *
+                     FROM clue INNER JOIN location
+                     ON clue.location_id = location.id
+                     WHERE completed = 0;`, [],
+        (_, result) => {
+          if (result.rows.length) {
+            let record = result.rows.item(this.state.cluesCompleted);
+
     console.log('getting saved clue');
     // If user played before, continue where the user left off.
     db.transaction(async (tx) => {
@@ -161,6 +201,7 @@ export default class App extends React.Component {
             let record = result.rows.item(randIndex);
             this.setState({
               isGameStarted: true,
+              savedClue: true,
               clue: record.description,
               clueId: record.id,
               clueLocation: {
@@ -171,26 +212,21 @@ export default class App extends React.Component {
               }
             });
           }
-        }, (tx, err) => {
-          console.log("Error in newClue executesql", err);
-        });
+        },
+        (_, err) => console.log("error getting new clue", err)
+      );
     });
   };
 
   _startPressed = () => {
     console.log('start pressed!');
-    //if user current clue empty then insert a row
     dbController.populate();
-    //IF NO SAVED CLUE
-    if (!this._getSavedClue()) {
-      //get first clue after starting
+
+    this._getSavedClue();
+    if (this.state.savedClue) {
+      console.log('no saved clue')
       this._getNewClue();
-      //update current clue in user table to the clue u just got ---- user table curr_clue === this.state.clueID (set from get new clue)
-      db.transaction((tx) => {
-        tx.executeSql(`INSERT into user (curr_clue) VALUES (${this.state.clueId})`, [], (_, result) => console.log("SUCCESS--->", result));
-      })
     }
-    // tx.executeSql(`UPDATE user SET curr_clue = ${this.state.clueId}`, [], (_, result)=> console.log("SUCCESS--->", result.rows.item(0)));
     this.setState({ isGameStarted: true });
   };
 
@@ -198,19 +234,25 @@ export default class App extends React.Component {
 
   _checkInPressed = () => {
     console.log('check in pressed!');
+    db.transaction(tx => {
+      tx.executeSql(`SELECT * FROM user`, [], (_, result) => console.log('user table content -->', result))
+    })
     this._getLocationAsync();
     const distance = haversine.getDistance(this.state.location.coords.latitude, this.state.location.coords.longitude, this.state.clueLocation.latitude, this.state.clueLocation.longitude);
     this.setState({ distance })
 
     if (distance <= this.state.clueLocation.radius) {
-      //change completed to 1 for current clue in db
-
-      //then get next clue
       this._getNewClue();
-      console.log('location found!');
       let completed = this.state.cluesCompleted;
       completed++;
       this.setState({ cluesCompleted: completed });
+      db.transaction(tx => {
+        tx.executeSql(`UPDATE user
+                       SET curr_clue = ?;`, [++completed],
+          (_, result) => console.log('updated curr_clue in user table', result),
+          (_, err) => console.log("error updating user table", err)
+        );
+      });
     }
     else {
       console.log('location not found!');
@@ -257,7 +299,7 @@ export default class App extends React.Component {
               : <StartButton
                 style={styles.startButton}
                 startGame={this._startPressed}
-                />
+              />
           }
           {
             this.state.isGameStarted &&
@@ -276,7 +318,6 @@ export default class App extends React.Component {
     }
   }
 }
-
 
 //stylesheet for react-native
 const styles = StyleSheet.create({

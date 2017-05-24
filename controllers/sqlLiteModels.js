@@ -6,8 +6,7 @@ id INT PRIMARY KEY ,
 longitude NUMERIC,
 latitude NUMERIC,
 place_name TEXT,
-radius INTEGER,
-
+radius INTEGER
 );`
 
 //schema to create clue table
