@@ -159,7 +159,8 @@ export default class App extends React.Component {
                      from clue inner join location on clue.location_id = location.id where completed = 0;`,
         [],
         (_, result) => {
-          console.log(result);
+          console.log("inside executeSql result --->", result);
+          console.log("inside executeSql result.rows --->", result.rows)
           if (result.rows.length) {
             let randIndex = Math.floor(Math.random() * result.rows.length);
 
@@ -189,7 +190,7 @@ export default class App extends React.Component {
 
   _startPressed = () => {
     console.log('start pressed!');
-    //if user current clie empty then insert a row
+    //if user current clue empty then insert a row
     dbController.populate();
     //IF NO SAVED CLUE
     if (!this._getSavedClue()) {
@@ -236,7 +237,6 @@ export default class App extends React.Component {
       return (
 
         <View style={styles.container}>
-          <StatusBar hidden />
           <MapView
             style={styles.mapView}
             provider={'google'}
@@ -257,17 +257,16 @@ export default class App extends React.Component {
             />
           </MapView>
           {
-            this.state.isGameStarted &&
-            <CheckInButton style={styles.checkInButton} checkIn={this._checkInPressed} />
-          }
-
-          {
-            this.state.isGameStarted ?
-              null :
-              <StartButton
+            this.state.isGameStarted
+              ? null
+              : <StartButton
                 style={styles.startButton}
                 startGame={this._startPressed}
-              />
+                />
+          }
+          {
+            this.state.isGameStarted &&
+            <CheckInButton style={styles.checkInButton} checkIn={this._checkInPressed} />
           }
           {
             this.state.isGameStarted &&
@@ -289,19 +288,28 @@ const styles = StyleSheet.create({
     flex: 30
   },
   clueOverlay: {
-    height: 32,
+    height: 80,
     backgroundColor: '#01579B',
   },
   checkInButton: {
-    height: 80,
+    height: 160,
     width: 80,
     position: 'absolute',
     bottom: 40,
     alignSelf: 'center'
   },
+
   resetButton: {
     height: 40,
     width: 100,
     position: 'absolute'
+  },
+
+  startButton: {
+    height: 70,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'yellow'
   }
 });
