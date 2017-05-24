@@ -52,46 +52,104 @@ export default class App extends React.Component {
   };
 
 
+
   _getSavedClue = () => {
     console.log('getting saved clue');
     // If user played before, continue where the user left off.
-    db.transaction(tx => {
-      tx.executeSql('select curr_clue from user;',
-        [],
-        (_, result) => {
-          console.log("inside tx.executeSQL getSavedClue result", result)
-          if (result.rows.length) {
-            let clueId = result.rows.item(0);
-            db.transaction(getClueDescription => {
-              getClueDescription.executeSql(`select * from clue inner join on location where clue.location_id = location.id and clue.id = ?;`,
-                [clueId],
-                (_, description_Result) => {
-                  if (description_Result.rows.length) {
-                    let record = description_Result.rows.item(0);
-                    console.log(record);
-                    this.setState({
-                      isGameStarted: true,
-                      clue: record.description,
-                      clueId: clueId,
-                      clueLocation: {
-                        latitude: record.latitude,
-                        longitude: record.longitude,
-                        placename: record.place_name,
-                        radius: record.radius
-                      }
-                    });
-                  }
-                  return true;
-                });
-            });
-          }
-          else {
-            console.log('no clue found!!!')
-            return false;
-          }
+    db.transaction(async (tx) => {
+
+      //define executeSql
+       function getCurrClue() {
+        return new Promise((resolve, reject) => {
+          tx.executeSql('select curr_clue from user;', [], (_, result) => resolve(result), reject);
         });
+      }
+
+       function getClueDescript(clueId) {
+        return new Promise((resolve, reject) => {
+          console.log('getClueDescript', clueId.rows.item(0).curr_clue)
+          tx.executeSql(`select * from clue inner join on location where clue.location_id = location.id and clue.id = ${clueId.rows.item(0).curr_clue};`,
+            [], (_, result) => {
+              console.log('getClueDescript res', result)
+              resolve(result)
+            }, (_, res) => {
+              console.log(res)
+              reject(res)
+            });
+        });
+      }
+
+      //call executeSql to get promise
+      let curr_clue = await getCurrClue();
+      console.log("CURR_ID --->", curr_clue)
+
+      let curr_description = await getClueDescript(curr_clue)
+      .then((res) => {
+        console.log('im here', res)
+      })
+
+      // let curr_description = await getClueDescript(curr_clue)
+      console.log("CURR_DESCRIPTION --->", curr_description)
+
+
+      //   curr_cluePromise
+      //   .then(result => {
+      //   if (result.rows.length) {
+      //     let clueId = result.rows.item(0);
+
+      //     let clueDescriptPromise = getClueDescript();
+      //     clueDescriptPromise
+      //       .then(description => {
+      //         console.log('final result', description);
+      //       });
+      //   }
+      //   else {
+      //     console.log('no clue found!!!')
+      //     return false;
+      //   }
+      // })
     }, (err) => console.log("error in getsavedclue", err), (...x) => console.log("success in getsavedclue", x));
   };
+  // _getSavedClue = () => {
+  //   console.log('getting saved clue');
+  //   // If user played before, continue where the user left off.
+  //   db.transaction(tx => {
+  //     console.log("getsavedclue TX --->", tx)
+  //     tx.executeSql('select curr_clue from user;', [], (_, result) => {
+  //         console.log("inside tx.executeSQL getSavedClue result --->", result)
+  //         if (result.rows.length) {
+  //           let clueId = result.rows.item(0);
+  //           db.transaction(getClueDescription => {
+  //             console.log("db transaction getClueDescription --->", getClueDescription)
+  //             getClueDescription.executeSql(`select * from clue inner join on location where clue.location_id = location.id and clue.id = ?;`,
+  //               [clueId],
+  //               (_, description_Result) => {
+  //                 if (description_Result.rows.length) {
+  //                   let record = description_Result.rows.item(0);
+  //                   console.log(record);
+  //                   this.setState({
+  //                     isGameStarted: true,
+  //                     clue: record.description,
+  //                     clueId: clueId,
+  //                     clueLocation: {
+  //                       latitude: record.latitude,
+  //                       longitude: record.longitude,
+  //                       placename: record.place_name,
+  //                       radius: record.radius
+  //                     }
+  //                   });
+  //                 }
+  //                 return true;
+  //               });
+  //           });
+  //         }
+  //         else {
+  //           console.log('no clue found!!!')
+  //           return false;
+  //         }
+  //       });
+  //   }, (err) => console.log("error in getsavedclue", err), (...x) => console.log("success in getsavedclue", x));
+  // };
 
   _getNewClue = () => {
     console.log('getting new clue, inside getnewclue method');

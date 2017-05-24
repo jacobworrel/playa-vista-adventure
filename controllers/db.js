@@ -4,7 +4,7 @@ import data from './sqlLiteModels';
 //create new database named projectDB
 const db = Expo.SQLite.openDatabase('projectDB');
 
-//REFACTOR IDEA
+//Create location, clue, and user data table
 db.transaction(tx => {
   tx.executeSql(data.location);
   tx.executeSql(data.clue);
