@@ -4,9 +4,10 @@ import { Platform, StyleSheet, Text, View, StatusBar } from 'react-native';
 import { MapView, Constants, Location, Permissions, SQLite } from 'expo';
 import ClueDescription from './components/ClueDescription';
 import ClueOverlay from './components/ClueOverlay';
-import CheckInButton from './components/CheckInButton';
-import db from './controllers/db';
 import StartButton from './components/StartButton';
+import CheckInButton from './components/CheckInButton';
+import ResetButton from './components/ResetButton';
+import db from './controllers/db';
 import dbController from './controllers/dbController';
 
 export default class App extends React.Component {
@@ -67,13 +68,10 @@ export default class App extends React.Component {
 
        function getClueDescript(clueId) {
         return new Promise((resolve, reject) => {
-          console.log('getClueDescript', clueId.rows.item(0).curr_clue)
           tx.executeSql(`select * from clue inner join on location where clue.location_id = location.id and clue.id = ${clueId.rows.item(0).curr_clue};`,
             [], (_, result) => {
-              console.log('getClueDescript res', result)
               resolve(result)
             }, (_, res) => {
-              console.log(res)
               reject(res)
             });
         });
@@ -81,15 +79,12 @@ export default class App extends React.Component {
 
       //call executeSql to get promise
       let curr_clue = await getCurrClue();
-      console.log("CURR_ID --->", curr_clue)
 
       let curr_description = await getClueDescript(curr_clue)
       .then((res) => {
-        console.log('im here', res)
       })
 
       // let curr_description = await getClueDescript(curr_clue)
-      console.log("CURR_DESCRIPTION --->", curr_description)
 
 
       //   curr_cluePromise
@@ -152,15 +147,11 @@ export default class App extends React.Component {
   // };
 
   _getNewClue = () => {
-    console.log('getting new clue, inside getnewclue method');
     db.transaction(tx => {
-      console.log('inside db.transaction')
       tx.executeSql(`select *
                      from clue inner join location on clue.location_id = location.id where completed = 0;`,
         [],
         (_, result) => {
-          console.log("inside executeSql result --->", result);
-          console.log("inside executeSql result.rows --->", result.rows)
           if (result.rows.length) {
             let randIndex = Math.floor(Math.random() * result.rows.length);
 
@@ -168,8 +159,6 @@ export default class App extends React.Component {
               randIndex = 0;
 
             let record = result.rows.item(randIndex);
-            console.log(randIndex);
-            console.log(record);
             this.setState({
               isGameStarted: true,
               clue: record.description,
@@ -194,7 +183,6 @@ export default class App extends React.Component {
     dbController.populate();
     //IF NO SAVED CLUE
     if (!this._getSavedClue()) {
-      console.log('inside startPressed, no saved clue')
       //get first clue after starting
       this._getNewClue();
       //update current clue in user table to the clue u just got ---- user table curr_clue === this.state.clueID (set from get new clue)
@@ -228,6 +216,13 @@ export default class App extends React.Component {
       console.log('location not found!');
     }
   };
+
+  _resetPressed = () => {
+    console.log('reset pressed!');
+    this.setState({isGameStarted: false,
+                   cluesCompleted: 0
+                 });
+  }
 
   render() {
     if (this.state.location == null) {
@@ -272,6 +267,10 @@ export default class App extends React.Component {
             this.state.isGameStarted &&
             <ClueOverlay style={styles.clueOverlay} clue={this.state.clue} cluesCompleted={this.state.cluesCompleted} />
           }
+          {
+            this.state.isGameStarted &&
+            <ResetButton style={styles.resetButton} reset={this._resetPressed} />
+          }
         </View>
       );
     }
@@ -300,9 +299,12 @@ const styles = StyleSheet.create({
   },
 
   resetButton: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
     height: 40,
-    width: 100,
-    position: 'absolute'
+    width: 80,
+    backgroundColor: 'purple'
   },
 
   startButton: {
