@@ -1,11 +1,13 @@
 import React from 'react';
+import haversine from './haversine.js';
 import { Platform, StyleSheet, Text, View, StatusBar } from 'react-native';
 import { MapView, Constants, Location, Permissions, SQLite } from 'expo';
 import ClueDescription from './components/ClueDescription';
 import ClueOverlay from './components/ClueOverlay';
 import CheckInButton from './components/CheckInButton';
-import db from './controllers/sqlLiteController';
-import StartButton from './components/StartButton'
+import db from './controllers/db';
+import StartButton from './components/StartButton';
+import dbController from './controllers/dbController';
 
 export default class App extends React.Component {
   state = {
@@ -37,11 +39,11 @@ export default class App extends React.Component {
         errorMessage: 'Permission to access location was denied',
       });
     }
-
     let location = await Location.getCurrentPositionAsync({});
     this.setState({ location });
   };
 
+  //always gets current position
   _watchPositionAsync = async () => {
     await Location.watchPositionAsync({ enableHighAccuracy: true, distanceInterval: 4 },
       (location) => {
@@ -49,70 +51,110 @@ export default class App extends React.Component {
       });
   };
 
-  _degreesToRadians = degrees => degrees * (Math.PI / 180);
 
-  _distanceInFeetBetweenEarthCoordinates = (lat1, lon1, lat2, lon2) => {
-    let earthRadiusFeet = 20903520;
-
-    let dLat = this._degreesToRadians(lat2 - lat1);
-    let dLon = this._degreesToRadians(lon2 - lon1);
-
-    lat1 = this._degreesToRadians(lat1);
-    lat2 = this._degreesToRadians(lat2);
-
-    let a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
-    let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    let distance = earthRadiusFeet * c;
-    console.log(distance);
-    this.setState({distance});
-    return distance;
-  }
 
   _getSavedClue = () => {
     console.log('getting saved clue');
-
     // If user played before, continue where the user left off.
-    db.transaction(tx => {
-      tx.executeSql('select curr_clue from user;',
-        [],
-        (_, result) => {
-          if (result.rows.length) {
-            let clueId = result.rows.item(0);
-            db.transaction(getClueDescription => {
-              getClueDescription.executeSql(`select * from clue inner join on location where clue.location_id = location.id and clue.id = ?;`,
-                [clueId],
-                (_, description_Result) => {
-                  if (description_Result.rows.length) {
-                    let record = description_Result.rows.item(0);
-                    console.log(record);
-                    this.setState({
-                      isGameStarted: true,
-                      clue: record.description,
-                      clueId: clueId,
-                      clueLocation: {
-                        latitude: record.latitude,
-                        longitude: record.longitude,
-                        placename: record.place_name,
-                        radius: record.radius
-                      }
-                    });
-                  }
-                  return true;
-                });
-            });
-          }
-          else {
-            return false;
-          }
+    db.transaction(async (tx) => {
+
+      //define executeSql
+       function getCurrClue() {
+        return new Promise((resolve, reject) => {
+          tx.executeSql('select curr_clue from user;', [], (_, result) => resolve(result), reject);
         });
-    });
+      }
+
+       function getClueDescript(clueId) {
+        return new Promise((resolve, reject) => {
+          console.log('getClueDescript', clueId.rows.item(0).curr_clue)
+          tx.executeSql(`select * from clue inner join on location where clue.location_id = location.id and clue.id = ${clueId.rows.item(0).curr_clue};`,
+            [], (_, result) => {
+              console.log('getClueDescript res', result)
+              resolve(result)
+            }, (_, res) => {
+              console.log(res)
+              reject(res)
+            });
+        });
+      }
+
+      //call executeSql to get promise
+      let curr_clue = await getCurrClue();
+      console.log("CURR_ID --->", curr_clue)
+
+      let curr_description = await getClueDescript(curr_clue)
+      .then((res) => {
+        console.log('im here', res)
+      })
+
+      // let curr_description = await getClueDescript(curr_clue)
+      console.log("CURR_DESCRIPTION --->", curr_description)
+
+
+      //   curr_cluePromise
+      //   .then(result => {
+      //   if (result.rows.length) {
+      //     let clueId = result.rows.item(0);
+
+      //     let clueDescriptPromise = getClueDescript();
+      //     clueDescriptPromise
+      //       .then(description => {
+      //         console.log('final result', description);
+      //       });
+      //   }
+      //   else {
+      //     console.log('no clue found!!!')
+      //     return false;
+      //   }
+      // })
+    }, (err) => console.log("error in getsavedclue", err), (...x) => console.log("success in getsavedclue", x));
   };
+  // _getSavedClue = () => {
+  //   console.log('getting saved clue');
+  //   // If user played before, continue where the user left off.
+  //   db.transaction(tx => {
+  //     console.log("getsavedclue TX --->", tx)
+  //     tx.executeSql('select curr_clue from user;', [], (_, result) => {
+  //         console.log("inside tx.executeSQL getSavedClue result --->", result)
+  //         if (result.rows.length) {
+  //           let clueId = result.rows.item(0);
+  //           db.transaction(getClueDescription => {
+  //             console.log("db transaction getClueDescription --->", getClueDescription)
+  //             getClueDescription.executeSql(`select * from clue inner join on location where clue.location_id = location.id and clue.id = ?;`,
+  //               [clueId],
+  //               (_, description_Result) => {
+  //                 if (description_Result.rows.length) {
+  //                   let record = description_Result.rows.item(0);
+  //                   console.log(record);
+  //                   this.setState({
+  //                     isGameStarted: true,
+  //                     clue: record.description,
+  //                     clueId: clueId,
+  //                     clueLocation: {
+  //                       latitude: record.latitude,
+  //                       longitude: record.longitude,
+  //                       placename: record.place_name,
+  //                       radius: record.radius
+  //                     }
+  //                   });
+  //                 }
+  //                 return true;
+  //               });
+  //           });
+  //         }
+  //         else {
+  //           console.log('no clue found!!!')
+  //           return false;
+  //         }
+  //       });
+  //   }, (err) => console.log("error in getsavedclue", err), (...x) => console.log("success in getsavedclue", x));
+  // };
 
   _getNewClue = () => {
-    console.log('getting new clue');
+    console.log('getting new clue, inside getnewclue method');
     db.transaction(tx => {
-      console.log('inside db.transaction', tx)
+      console.log('inside db.transaction')
       tx.executeSql(`select *
                      from clue inner join location on clue.location_id = location.id where completed = 0;`,
         [],
@@ -122,7 +164,7 @@ export default class App extends React.Component {
           if (result.rows.length) {
             let randIndex = Math.floor(Math.random() * result.rows.length);
 
-            if(this.state.cluesCompleted === 0)
+            if (this.state.cluesCompleted === 0)
               randIndex = 0;
 
             let record = result.rows.item(randIndex);
@@ -138,34 +180,51 @@ export default class App extends React.Component {
                 placename: record.place_name,
                 radius: record.radius
               }
-          });
+            });
           }
         }, (tx, err) => {
-          console.log(err);
+          console.log("Error in newClue executesql", err);
         });
     });
+
+
   };
 
   _startPressed = () => {
     console.log('start pressed!');
+    //if user current clue empty then insert a row
+    dbController.populate();
+    //IF NO SAVED CLUE
     if (!this._getSavedClue()) {
+      console.log('inside startPressed, no saved clue')
+      //get first clue after starting
       this._getNewClue();
+      //update current clue in user table to the clue u just got ---- user table curr_clue === this.state.clueID (set from get new clue)
+      db.transaction((tx) => {
+        tx.executeSql(`INSERT into user (curr_clue) VALUES (${this.state.clueId})`, [], (_, result) => console.log("SUCCESS--->", result));
+      })
     }
+    // tx.executeSql(`UPDATE user SET curr_clue = ${this.state.clueId}`, [], (_, result)=> console.log("SUCCESS--->", result.rows.item(0)));
     this.setState({ isGameStarted: true });
   };
+
+
 
   _checkInPressed = () => {
     console.log('check in pressed!');
     this._getLocationAsync();
-    if (this._distanceInFeetBetweenEarthCoordinates(this.state.location.coords.latitude,
-      this.state.location.coords.longitude,
-      this.state.clueLocation.latitude,
-      this.state.clueLocation.longitude) <= this.state.clueLocation.radius) {
+    const distance = haversine.getDistance(this.state.location.coords.latitude, this.state.location.coords.longitude, this.state.clueLocation.latitude, this.state.clueLocation.longitude);
+    this.setState({ distance })
+
+    if (distance <= this.state.clueLocation.radius) {
+      //change completed to 1 for current clue in db
+
+      //then get next clue
       this._getNewClue();
       console.log('location found!');
       let completed = this.state.cluesCompleted;
       completed++;
-      this.setState({cluesCompleted: completed});
+      this.setState({ cluesCompleted: completed });
     }
     else {
       console.log('location not found!');
@@ -180,14 +239,6 @@ export default class App extends React.Component {
       return (
 
         <View style={styles.container}>
-          <StatusBar hidden />
-          {/*<Text>TEST ----></Text>
-          <Text>USER LAT: {this.state.location.coords.latitude}</Text>
-          <Text>USER LONG: {this.state.location.coords.longitude}</Text>
-          <Text>CLUE LAT: {this.state.clueLocation ? this.state.clueLocation.latitude : ''}</Text>
-          <Text>CLUE LONG: {this.state.clueLocation ? this.state.clueLocation.longitude : ''}</Text>
-                    <Text>DISTANCE: { this.state.distance }</Text>*/}
-
           <MapView
             style={styles.mapView}
             provider={'google'}
@@ -198,7 +249,6 @@ export default class App extends React.Component {
               longitudeDelta: 0.01//0.0421,
             }}
           >
-
             <MapView.Circle
               radius={20}
               fillColor={'#00F'}
@@ -209,17 +259,16 @@ export default class App extends React.Component {
             />
           </MapView>
           {
-              this.state.isGameStarted &&
-              <CheckInButton style={styles.checkInButton} checkIn={this._checkInPressed}/>
-          }
-
-          {
-              this.state.isGameStarted ?
-                null :
-                <StartButton
-                  style={styles.startButton}
-                  startGame={this._startPressed}
+            this.state.isGameStarted
+              ? null
+              : <StartButton
+                style={styles.startButton}
+                startGame={this._startPressed}
                 />
+          }
+          {
+            this.state.isGameStarted &&
+            <CheckInButton style={styles.checkInButton} checkIn={this._checkInPressed} />
           }
           {
             this.state.isGameStarted &&
@@ -231,38 +280,31 @@ export default class App extends React.Component {
   }
 }
 
+
+//stylesheet for react-native
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    // backgroundColor: '#000',
-    // alignItems: 'center',
-    // justifyContent: 'center',
+    flex: 1
   },
-
   mapView: {
     flex: 30
   },
-  startButton: {
-    // backgroundColor: 'red',
-    // width: 80,
-    // height: 80,
-    // position: 'absolute',
-    // bottom: 160,
-    // alignSelf: 'center'
-  },
   clueOverlay: {
-    // flex: 1,
-    height: 32,
+    height: 80,
     backgroundColor: '#01579B',
-
   },
   checkInButton: {
-    // color: 'green',
-    // backgroundColor: 'green',
-    height: 80,
+    height: 160,
     width: 80,
     position: 'absolute',
     bottom: 40,
     alignSelf: 'center'
+  },
+  startButton: {
+    height: 70,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'yellow'
   }
 });
