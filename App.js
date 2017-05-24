@@ -18,7 +18,7 @@ export default class App extends React.Component {
     location: null,
     errorMessage: null,
     distance: 0,
-    cluesCompleted: 0
+    cluesCompleted: 0,
   };
 
   componentWillMount() {
@@ -159,7 +159,8 @@ export default class App extends React.Component {
                      from clue inner join location on clue.location_id = location.id where completed = 0;`,
         [],
         (_, result) => {
-          console.log(result);
+          console.log("inside executeSql result --->", result);
+          console.log("inside executeSql result.rows --->", result.rows)
           if (result.rows.length) {
             let randIndex = Math.floor(Math.random() * result.rows.length);
 
@@ -185,8 +186,6 @@ export default class App extends React.Component {
           console.log("Error in newClue executesql", err);
         });
     });
-
-
   };
 
   _startPressed = () => {
@@ -299,6 +298,13 @@ const styles = StyleSheet.create({
     bottom: 40,
     alignSelf: 'center'
   },
+
+  resetButton: {
+    height: 40,
+    width: 100,
+    position: 'absolute'
+  },
+
   startButton: {
     height: 70,
     display: 'flex',
