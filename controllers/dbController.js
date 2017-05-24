@@ -15,4 +15,42 @@ const dbController = {
   }
 }
 
+//  getSavedClue = () => {
+//     console.log('getting saved clue');
+//     // If user played before, continue where the user left off.
+//     db.transaction(tx => {
+//       tx.executeSql('select curr_clue from user;', [], (_, result) => {
+//           if (result.rows.length) {
+//             let clueId = result.rows.item(0);
+//           } else {
+//             console.log('no clue found!!!')
+//             return false;
+//           }
+//         });
+//     }, (err) => console.log("error in getsavedclue", err), (...x) => console.log("success in getsavedclue", x));
+//   };
+
 export default dbController;
+
+// db.transaction(tx => {
+//               tx.executeSql(`select * from clue inner join on location where clue.location_id = location.id and clue.id = ?;`,
+//                 [clueId],
+//                 (_, description_Result) => {
+//                   if (description_Result.rows.length) {
+//                     let record = description_Result.rows.item(0);
+//                     console.log(record);
+//                     this.setState({
+//                       isGameStarted: true,
+//                       clue: record.description,
+//                       clueId: clueId,
+//                       clueLocation: {
+//                         latitude: record.latitude,
+//                         longitude: record.longitude,
+//                         placename: record.place_name,
+//                         radius: record.radius
+//                       }
+//                     });
+//                   }
+//                   return true;
+//                 });
+//             });

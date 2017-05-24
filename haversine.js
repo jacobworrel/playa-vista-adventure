@@ -1,6 +1,5 @@
 const haversine = {};
 
-//
 //gets distance between 2 coordinates on a sphere (Earth)
 haversine.getDistance = (lat1, lon1, lat2, lon2) => {
     const degToRad = degrees => degrees * (Math.PI / 180);
