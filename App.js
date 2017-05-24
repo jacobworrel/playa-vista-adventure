@@ -18,7 +18,7 @@ export default class App extends React.Component {
     location: null,
     errorMessage: null,
     distance: 0,
-    cluesCompleted: 0
+    cluesCompleted: 0,
   };
 
   componentWillMount() {
@@ -185,8 +185,6 @@ export default class App extends React.Component {
           console.log("Error in newClue executesql", err);
         });
     });
-
-
   };
 
   _startPressed = () => {
@@ -300,5 +298,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 40,
     alignSelf: 'center'
+  },
+  resetButton: {
+    height: 40,
+    width: 100,
+    position: 'absolute'
   }
 });
