@@ -20,6 +20,7 @@ export default class App extends React.Component {
     errorMessage: null,
     distance: 0,
     cluesCompleted: 0,
+    checkinButtonColor: ''
   };
 
   componentWillMount() {
@@ -190,7 +191,6 @@ export default class App extends React.Component {
         tx.executeSql(`INSERT into user (curr_clue) VALUES (${this.state.clueId})`, [], (_, result) => console.log("SUCCESS--->", result));
       })
     }
-    // tx.executeSql(`UPDATE user SET curr_clue = ${this.state.clueId}`, [], (_, result)=> console.log("SUCCESS--->", result.rows.item(0)));
     this.setState({ isGameStarted: true });
   };
 
@@ -203,24 +203,22 @@ export default class App extends React.Component {
     this.setState({ distance })
 
     if (distance <= this.state.clueLocation.radius) {
-      //change completed to 1 for current clue in db
-
-      //then get next clue
       this._getNewClue();
       console.log('location found!');
       let completed = this.state.cluesCompleted;
       completed++;
-      this.setState({ cluesCompleted: completed });
+      this.setState({ cluesCompleted: completed, checkinButtonColor: 'green' });
     }
     else {
       console.log('location not found!');
+      this.setState({checkinButtonColor: 'red'});
     }
   };
 
   _resetPressed = () => {
-    console.log('reset pressed!');
     this.setState({isGameStarted: false,
-                   cluesCompleted: 0
+                   cluesCompleted: 0,
+                   checkinButtonColor: 'green'
                  });
   }
 
@@ -232,6 +230,7 @@ export default class App extends React.Component {
       return (
 
         <View style={styles.container}>
+        <StatusBar hidden />
           <MapView
             style={styles.mapView}
             provider={'google'}
@@ -261,7 +260,7 @@ export default class App extends React.Component {
           }
           {
             this.state.isGameStarted &&
-            <CheckInButton style={styles.checkInButton} checkIn={this._checkInPressed} />
+            <CheckInButton style={styles.checkInButton} checkIn={this._checkInPressed} checkinButtonColor={this.state.checkinButtonColor}/>
           }
           {
             this.state.isGameStarted &&
@@ -291,10 +290,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#01579B',
   },
   checkInButton: {
-    height: 160,
+    height: 80,
     width: 80,
+    borderRadius: 40,
     position: 'absolute',
-    bottom: 40,
+    bottom: 100,
     alignSelf: 'center'
   },
 

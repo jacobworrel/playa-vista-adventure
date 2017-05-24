@@ -3,15 +3,18 @@ import React, { Component } from 'react';
 import { Text, StyleSheet, TouchableHighlight, Image } from 'react-native';
 
 class CheckInButton extends Component {
-  _onPressButton() {
-    console.log('tap!');
-  }
 
   render() {
     return (
-      <TouchableHighlight onPress={this.props.checkIn} style={this.props.style}>
-        <Image source={{ uri: 'https://d30y9cdsu7xlg0.cloudfront.net/png/21729-200.png' }}
-          style={{ width: 80, height: 80 }} />
+      <TouchableHighlight
+        onPress={this.props.checkIn}
+        style={this.props.style}
+        underlayColor={this.props.checkinButtonColor}
+      >
+        <Image
+          source={require('./../assets/checkin-button.png')}
+          style={{ width: 80, height: 80 }}
+        />
       </TouchableHighlight>
     );
   }
