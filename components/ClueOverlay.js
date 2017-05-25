@@ -19,7 +19,7 @@ class ClueOverlay extends Component {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#01579B'
+    backgroundColor: '#DB7093',
   },
   clueDescription: {
     flex: 3,

@@ -1,6 +1,6 @@
 
 import React, { Component } from 'react';
-import { Text, StyleSheet, TouchableHighlight, Image } from 'react-native';
+import { Text, StyleSheet, TouchableHighlight, Image, View } from 'react-native';
 
 class CheckInButton extends Component {
 
@@ -9,15 +9,18 @@ class CheckInButton extends Component {
       <TouchableHighlight
         onPress={this.props.checkIn}
         style={this.props.style}
-        underlayColor={this.props.checkinButtonColor}
       >
-        <Image
-          source={require('./../assets/checkin-button.png')}
-          style={{ width: 80, height: 80 }}
-        />
+        <View style={{backgroundColor: this.props.checkinButtonColor, borderRadius: 40}} >
+          <Image
+            source={require('./../assets/checkin-button.png')}
+            style={{ width: 80, height: 80 }}
+          />
+        </View>
       </TouchableHighlight>
     );
   }
 }
 
+
 export default CheckInButton;
+
