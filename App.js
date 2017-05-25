@@ -20,7 +20,7 @@ export default class App extends React.Component {
     errorMessage: null,
     distance: 0,
     cluesCompleted: 0,
-    checkinButtonColor: '',
+    checkinButtonColor: 'transparent',
     savedClue: false
   };
   //hi
@@ -139,6 +139,7 @@ export default class App extends React.Component {
       let completed = this.state.cluesCompleted;
       completed++;
       this.setState({ cluesCompleted: completed, checkinButtonColor: 'green' });
+      this._toggleColor();
       db.transaction(tx => {
         tx.executeSql(`UPDATE user
                        SET curr_clue = ?;`, [++completed],
@@ -150,6 +151,7 @@ export default class App extends React.Component {
     else {
       console.log('location not found!');
       this.setState({checkinButtonColor: 'red'});
+      this._toggleColor();
     }
   };
 
@@ -163,9 +165,15 @@ export default class App extends React.Component {
     });
   this.setState({isGameStarted: false,
                  cluesCompleted: 0,
-                 checkinButtonColor: 'green'
+                 checkinButtonColor: 'transparent'
                });
 }
+
+  _toggleColor = () => {
+    setTimeout(() => {
+      this.setState({checkinButtonColor: 'transparent'})
+    }, 500)
+  }
 
   render() {
     if (this.state.location == null) {
@@ -186,10 +194,9 @@ export default class App extends React.Component {
               longitudeDelta: 0.01//0.0421,
             }}
           >
-            <MapView.Circle
-              radius={20}
-              fillColor={'#00F'}
-              center={{
+            <MapView.Marker
+              image={require('./assets/cat.png')}
+              coordinate={{
                 latitude: this.state.location.coords.latitude,
                 longitude: this.state.location.coords.longitude
               }}
@@ -256,6 +263,6 @@ const styles = StyleSheet.create({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'yellow'
+    backgroundColor: '#FFB6C1'
   }
 });
