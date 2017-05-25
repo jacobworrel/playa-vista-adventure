@@ -21,7 +21,7 @@ export default class App extends React.Component {
     cluesCompleted: 0,
     savedClue: false
   };
-
+  //hi
   componentWillMount() {
     if (Platform.OS === 'android' && !Constants.isDevice) {
       this.setState({
