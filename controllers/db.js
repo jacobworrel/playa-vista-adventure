@@ -6,6 +6,8 @@ const db = Expo.SQLite.openDatabase('projectDB');
 
 // db.transaction(tx => {
 //   tx.executeSql(`DROP TABLE user;`);
+//   tx.executeSql(`DROP TABLE clue;`);
+//   tx.executeSql(`DROP TABLE location;`);
 // })
 
 // create location, clue, and user data table
