@@ -4,9 +4,10 @@ import { Platform, StyleSheet, Text, View, StatusBar } from 'react-native';
 import { MapView, Constants, Location, Permissions, SQLite } from 'expo';
 import ClueDescription from './components/ClueDescription';
 import ClueOverlay from './components/ClueOverlay';
-import CheckInButton from './components/CheckInButton';
-import db from './controllers/db';
 import StartButton from './components/StartButton';
+import CheckInButton from './components/CheckInButton';
+import ResetButton from './components/ResetButton';
+import db from './controllers/db';
 import dbController from './controllers/dbController';
 
 export default class App extends React.Component {
@@ -54,6 +55,7 @@ export default class App extends React.Component {
 
 
   _getSavedClue = () => {
+
     db.transaction(tx => {
       tx.executeSql(`SELECT * FROM user 
                     INNER JOIN clue
@@ -92,6 +94,111 @@ export default class App extends React.Component {
         (_, result) => {
           if (result.rows.length) {
             let record = result.rows.item(this.state.cluesCompleted);
+
+    console.log('getting saved clue');
+    // If user played before, continue where the user left off.
+    db.transaction(async (tx) => {
+
+      //define executeSql
+       function getCurrClue() {
+        return new Promise((resolve, reject) => {
+          tx.executeSql('select curr_clue from user;', [], (_, result) => resolve(result), reject);
+        });
+      }
+
+       function getClueDescript(clueId) {
+        return new Promise((resolve, reject) => {
+          tx.executeSql(`select * from clue inner join on location where clue.location_id = location.id and clue.id = ${clueId.rows.item(0).curr_clue};`,
+            [], (_, result) => {
+              resolve(result)
+            }, (_, res) => {
+              reject(res)
+            });
+        });
+      }
+
+      //call executeSql to get promise
+      let curr_clue = await getCurrClue();
+
+      let curr_description = await getClueDescript(curr_clue)
+      .then((res) => {
+      })
+
+      // let curr_description = await getClueDescript(curr_clue)
+
+
+      //   curr_cluePromise
+      //   .then(result => {
+      //   if (result.rows.length) {
+      //     let clueId = result.rows.item(0);
+
+      //     let clueDescriptPromise = getClueDescript();
+      //     clueDescriptPromise
+      //       .then(description => {
+      //         console.log('final result', description);
+      //       });
+      //   }
+      //   else {
+      //     console.log('no clue found!!!')
+      //     return false;
+      //   }
+      // })
+    }, (err) => console.log("error in getsavedclue", err), (...x) => console.log("success in getsavedclue", x));
+  };
+  // _getSavedClue = () => {
+  //   console.log('getting saved clue');
+  //   // If user played before, continue where the user left off.
+  //   db.transaction(tx => {
+  //     console.log("getsavedclue TX --->", tx)
+  //     tx.executeSql('select curr_clue from user;', [], (_, result) => {
+  //         console.log("inside tx.executeSQL getSavedClue result --->", result)
+  //         if (result.rows.length) {
+  //           let clueId = result.rows.item(0);
+  //           db.transaction(getClueDescription => {
+  //             console.log("db transaction getClueDescription --->", getClueDescription)
+  //             getClueDescription.executeSql(`select * from clue inner join on location where clue.location_id = location.id and clue.id = ?;`,
+  //               [clueId],
+  //               (_, description_Result) => {
+  //                 if (description_Result.rows.length) {
+  //                   let record = description_Result.rows.item(0);
+  //                   console.log(record);
+  //                   this.setState({
+  //                     isGameStarted: true,
+  //                     clue: record.description,
+  //                     clueId: clueId,
+  //                     clueLocation: {
+  //                       latitude: record.latitude,
+  //                       longitude: record.longitude,
+  //                       placename: record.place_name,
+  //                       radius: record.radius
+  //                     }
+  //                   });
+  //                 }
+  //                 return true;
+  //               });
+  //           });
+  //         }
+  //         else {
+  //           console.log('no clue found!!!')
+  //           return false;
+  //         }
+  //       });
+  //   }, (err) => console.log("error in getsavedclue", err), (...x) => console.log("success in getsavedclue", x));
+  // };
+
+  _getNewClue = () => {
+    db.transaction(tx => {
+      tx.executeSql(`select *
+                     from clue inner join location on clue.location_id = location.id where completed = 0;`,
+        [],
+        (_, result) => {
+          if (result.rows.length) {
+            let randIndex = Math.floor(Math.random() * result.rows.length);
+
+            if (this.state.cluesCompleted === 0)
+              randIndex = 0;
+
+            let record = result.rows.item(randIndex);
             this.setState({
               isGameStarted: true,
               savedClue: true,
@@ -114,6 +221,7 @@ export default class App extends React.Component {
   _startPressed = () => {
     console.log('start pressed!');
     dbController.populate();
+
     this._getSavedClue();
     if (this.state.savedClue) {
       console.log('no saved clue')
@@ -150,6 +258,13 @@ export default class App extends React.Component {
       console.log('location not found!');
     }
   };
+
+  _resetPressed = () => {
+    console.log('reset pressed!');
+    this.setState({isGameStarted: false,
+                   cluesCompleted: 0
+                 });
+  }
 
   render() {
     if (this.state.location == null) {
@@ -194,6 +309,10 @@ export default class App extends React.Component {
             this.state.isGameStarted &&
             <ClueOverlay style={styles.clueOverlay} clue={this.state.clue} cluesCompleted={this.state.cluesCompleted} />
           }
+          {
+            this.state.isGameStarted &&
+            <ResetButton style={styles.resetButton} reset={this._resetPressed} />
+          }
         </View>
       );
     }
@@ -221,9 +340,12 @@ const styles = StyleSheet.create({
   },
 
   resetButton: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
     height: 40,
-    width: 100,
-    position: 'absolute'
+    width: 80,
+    backgroundColor: 'purple'
   },
 
   startButton: {

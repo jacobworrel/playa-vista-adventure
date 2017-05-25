@@ -9,7 +9,6 @@ class StartButton extends Component {
         <Button onPress={this.props.startGame}
                 title="START"
                 color="green"
-                style={{fontWeight: 'bold'}}
         />
      </View>
     );
