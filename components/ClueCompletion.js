@@ -6,7 +6,7 @@ class ClueCompletion extends Component {
   render() {
     return (
       <Text style={this.props.style}>
-        {this.props.cluesCompleted} / 7
+        {this.props.cluesCompleted} / 4
       </Text>
     );
   }
