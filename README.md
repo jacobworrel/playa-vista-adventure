@@ -1,4 +1,4 @@
-![Playa Vista Adventure](https://s1.postimg.org/9cdx03fjvz/Screenshot_from_2017-10-27_13-48-17.png)
+![Playa Vista Adventure](https://s1.postimg.org/6b8yaepwtb/Screenshot_from_2017-10-27_13-48-17.png)
 ![Playa Vista Adventure](https://s1.postimg.org/4c005wce7j/IMG_7583.png)
 ![Playa Vista Adventure](https://s1.postimg.org/1h7c0467in/IMG_7584.png)
 
