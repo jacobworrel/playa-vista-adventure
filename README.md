@@ -1,6 +1,6 @@
 ![Playa Vista Adventure](https://s1.postimg.org/9cdx03fjvz/Screenshot_from_2017-10-27_13-48-17.png)
-![Playa Vista Adventure](https://s1.postimg.org/1dmbj6u373/IMG_7583.png)
-![Playa Vista Adventure](https://s1.postimg.org/3cii9j5ta7/IMG_7584.png)
+![Playa Vista Adventure](https://s1.postimg.org/4c005wce7j/IMG_7583.png)
+![Playa Vista Adventure](https://s1.postimg.org/1h7c0467in/IMG_7584.png)
 
 This project was bootstrapped with [Create React Native App](https://github.com/react-community/create-react-native-app).
 
