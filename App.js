@@ -118,7 +118,7 @@ export default class App extends React.Component {
     console.log('start pressed!');
     dbController.populate();
     this._getSavedClue();
-    if (this.state.savedClue) {
+    if (!this.state.savedClue) {
       console.log('no saved clue')
       this._getNewClue();
     }
@@ -133,7 +133,6 @@ export default class App extends React.Component {
     this._getLocationAsync();
     const distance = haversine.getDistance(this.state.location.coords.latitude, this.state.location.coords.longitude, this.state.clueLocation.latitude, this.state.clueLocation.longitude);
     this.setState({ distance })
-
     if (distance <= this.state.clueLocation.radius) {
       this._getNewClue();
       let completed = this.state.cluesCompleted;

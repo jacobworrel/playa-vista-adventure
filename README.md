@@ -1,3 +1,7 @@
+![Playa Vista Adventure](https://s1.postimg.org/9cdx03fjvz/Screenshot_from_2017-10-27_13-48-17.png)
+![Playa Vista Adventure](https://s1.postimg.org/1dmbj6u373/IMG_7583.png)
+![Playa Vista Adventure](https://s1.postimg.org/3cii9j5ta7/IMG_7584.png)
+
 This project was bootstrapped with [Create React Native App](https://github.com/react-community/create-react-native-app).
 
 Below you'll find information about performing common tasks. The most recent version of this guide is available [here](https://github.com/react-community/create-react-native-app/blob/master/react-native-scripts/template/README.md).
